@@ -1,6 +1,11 @@
-public struct Mogelei {
-    public private(set) var text = "Hello, World!"
+import ArgumentParser
 
-    public init() {
+@main
+struct Mogelei: ParsableCommand {
+    @Argument(help: "The source code file to scan for protocols.")
+    var file: String
+
+    mutating func run() throws {
+        print("Should scan file: \(file)")
     }
 }
