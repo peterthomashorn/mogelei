@@ -1,6 +1,7 @@
 import ArgumentParser
 import Foundation
 import SwiftParser
+import SwiftSyntax
 
 enum MogeleiError: Error {
     case dataRetrieval
@@ -22,6 +23,15 @@ struct Mogelei: ParsableCommand {
         }
 
         let tree = Parser.parse(source: code)
-        print(tree.description)
+        var declarations = [ProtocolDeclSyntax]()
+
+        for statement in tree.statements {
+            guard let declaration = statement.item.as(ProtocolDeclSyntax.self) else {
+                continue
+            }
+
+            declarations.append(declaration)
+            print("Found declaration of: \(declaration.identifier)")
+        }
     }
 }
