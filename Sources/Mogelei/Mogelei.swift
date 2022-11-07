@@ -2,6 +2,7 @@ import ArgumentParser
 import Foundation
 import SwiftParser
 import SwiftSyntax
+import SwiftSyntaxBuilder
 
 enum MogeleiError: Error {
     case dataRetrieval
@@ -31,7 +32,34 @@ struct Mogelei: ParsableCommand {
             }
 
             declarations.append(declaration)
-            print("Found declaration of: \(declaration.identifier)")
         }
+
+        let mockCode = SwiftSyntaxBuilder.SourceFile {
+            for declaration in declarations {
+                ClassDecl(identifier: "\(declaration.identifier.text)Mock") {
+                    for member in declaration.members.members {
+                        if let function = member.decl.as(FunctionDeclSyntax.self) {
+                            let callCountVariableName = "\(function.identifier.text)Called"
+                            VariableDecl(stringLiteral: "var \(callCountVariableName) = false")
+
+                            FunctionDecl(
+                                identifier: function.identifier,
+                                signature: function.signature
+                            ) {
+                                SequenceExpr() {
+                                    ExprList() {
+                                        IdentifierExpr(stringLiteral: callCountVariableName)
+                                        AssignmentExpr(assignToken: Token.equal)
+                                        BooleanLiteralExpr(booleanLiteral: true)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        print(mockCode.formatted().description)
     }
 }
